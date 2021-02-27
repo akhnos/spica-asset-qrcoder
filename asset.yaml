@@ -58,7 +58,7 @@ spec:
         resourceFieldRef: 
             apiKeyName: auth-apikey
   dependency:
-    - name: "qrcode"
+    - name: "node-qrcode"
       version: latest
     - name: "@spica-devkit/bucket"
       version: latest
