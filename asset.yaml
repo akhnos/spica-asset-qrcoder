@@ -1,0 +1,75 @@
+# FIREBASE BUCKET
+apiVersion: bucket/v1
+kind: Schema
+metadata:
+  name: bucket-qrcode
+spec:
+  title: QR Codes
+  description: Data will be rendered as QR Code
+  acl:
+    write: "true==true"
+    read: "true==true"
+  properties:
+    title:
+      type: string
+      description: "Add a title to your QR codes"
+      options:
+        position: left
+        visible: true
+    data:
+      type: textarea
+      description: "Data you want to render as QR Code"
+      options:
+        position: right
+        visible: true
+  primary:
+    - title
+---
+# API KEY
+apiVersion: passport/v1
+kind: ApiKey
+metadata:
+  name: auth-apikey
+spec:
+  name: Secret Api Key For QR Code Generator
+  policies:
+    - BucketFullAccess
+---
+# FUNCTION QR Code
+apiVersion: function/v1
+kind: Function
+metadata:
+  name: function-qr-code
+spec:
+  title: QR Code Generator
+  description: "Creates a QR code"
+  timeout: 10
+  code: ./functions/qrcode.js
+  runtime:
+    name: Node
+    language: Javascript
+  environment:
+    - name: BUCKET_ID
+      valueFrom: 
+        resourceFieldRef: 
+            schemaName: bucket-qrcode
+    - name: APIKEY
+      valueFrom: 
+        resourceFieldRef: 
+            apiKeyName: auth-apikey
+  dependency:
+    - name: "firebase-admin"
+      version: latest
+---
+# TRIGGER - FIREBASE
+apiVersion: function/v1
+kind: Trigger
+metadata:
+  name: trigger-qrcode-1
+spec:
+  name: default
+  func: function-qrcode
+  type: bucket
+  httpOptions:
+    method: Get
+    path: /qrcode
